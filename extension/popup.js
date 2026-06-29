@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 response.textContent = "🤖 Thinking...";
 
                 const backendResponse = await fetch(
-                    "http://127.0.0.1:8000/ask",
+                    "http://127.0.0.1:8000/index-page",
                     {
                         method: "POST",
 
@@ -86,7 +86,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const result = await backendResponse.json();
 
-                response.textContent = result.answer;
+                response.textContent =
+                `${result.message}
+
+                Total Chunks: ${result.chunks}`;
             }
         );
 
@@ -96,58 +99,3 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-// document.addEventListener("DOMContentLoaded", () => {
-
-//     const askButton = document.getElementById("askButton");
-//     const response = document.getElementById("response");
-
-//     askButton.addEventListener("click", async () => {
-
-//         response.textContent = "🤖 Reading webpage...";
-
-//         const [tab] = await chrome.tabs.query({
-//             active: true,
-//             currentWindow: true
-//         });
-
-//         chrome.tabs.sendMessage(
-//             tab.id,
-//             { action: "getPageContent" },
-//             (pageData) => {
-
-//                 console.log("========== PAGE DATA ==========");
-//                 console.log(pageData);
-//                 console.log("===============================");
-
-//                 if (chrome.runtime.lastError) {
-//                     console.error(chrome.runtime.lastError);
-
-//                     response.textContent =
-//                         "❌ " + chrome.runtime.lastError.message;
-
-//                     return;
-//                 }
-
-//                 if (!pageData) {
-//                     response.textContent =
-//                         "❌ No page data received.";
-
-//                     return;
-//                 }
-
-//                 console.log("Title:", pageData.title);
-//                 console.log("URL:", pageData.url);
-
-//                 console.log("First 500 characters:");
-//                 console.log(pageData.text.substring(0, 500));
-
-//                 response.textContent =
-//                     "✅ Page read successfully!\n\n" +
-//                     pageData.title;
-
-//             }
-//         );
-
-//     });
-
-// });

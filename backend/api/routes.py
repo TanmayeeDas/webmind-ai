@@ -12,33 +12,23 @@ def health():
     }
 
 
-@router.post("/ask")
-def ask(data: dict):
+@router.post("/index-page")
+def index_page(data: dict):
 
-    #Step 1: Chunking
-    chunks = chunk_text(data["page_text"])
+    page_text = data["page_text"]
 
-    print("=" * 50)
+    chunks = chunk_text(page_text)
 
-    print("Total Chunks:", len(chunks))
+    print(f"Created {len(chunks)} chunks")
 
-    print("=" * 50)
-
-    #Step 2: Print the first few chunks
-    for i, chunk in enumerate(chunks):
-
-        print(f"\nChunk {i+1}")
-
-        print(chunk[:150])
-    
-    #Step 3: Create FAISS
     vector_store = create_vector_store(chunks)
 
-    print("\n✅ Vector Store Created Successfully!")
-    # Step 4 - Return response
+    print("Vector Store Created Successfully!")
+
     return {
 
-        "answer": f"Vector Store Created Successfully with {len(chunks)} chunks."
+        "message": "Page indexed successfully.",
+
+        "chunks": len(chunks)
 
     }
-
