@@ -79,6 +79,7 @@ from fastapi import APIRouter
 from rag.chunker import chunk_text
 from rag.vector_store import create_vector_store
 from rag.retriever import retrieve_context
+from services.openai_service import generate_answer
 
 router = APIRouter()
 
@@ -124,16 +125,23 @@ def retrieve(data: dict):
     print("Retrieved Chunks")
     print("=" * 50)
 
+    context = ""
+
     for i, doc in enumerate(docs):
 
         print(f"\nChunk {i+1}\n")
 
         print(doc.page_content[:200])
 
+        context += doc.page_content + "\n\n"
+
+    answer = generate_answer(
+        question=question,
+        context=context
+    )
+
     return {
 
-        "message": "Retrieval Successful!",
-
-        "retrieved_chunks": len(docs)
+        "answer": answer
 
     }
