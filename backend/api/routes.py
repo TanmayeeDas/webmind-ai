@@ -2,7 +2,8 @@ from fastapi import APIRouter
 
 from rag.chunker import chunk_text
 from rag.vector_store import create_vector_store
-from rag.retriever import retrieve_context
+# from rag.retriever import retrieve_context
+from rag.hybrid_retriever import hybrid_retrieve
 from services.openai_service import generate_answer
 from models.request import IndexPageRequest
 from models.request import RetrieveRequest
@@ -102,28 +103,29 @@ def retrieve(data: RetrieveRequest):
 
             }
 
-        results = retrieve_context(question)
+        # results = retrieve_context(question)
+        docs = hybrid_retrieve(question)
 
-        if not results:
-
-            return {
-
-                "answer": "I couldn't find the answer on this webpage."
-
-            }
-
-        best_score = results[0][1]
-
-        print(f"\nBest Score : {best_score:.4f}")
-
-
-        if best_score > SIMILARITY_THRESHOLD:
+        if not docs:
 
             return {
 
                 "answer": "I couldn't find the answer on this webpage."
 
             }
+
+        # best_score = results[0][1]
+
+        # print(f"\nBest Score : {best_score:.4f}")
+
+
+        # if best_score > SIMILARITY_THRESHOLD:
+
+        #     return {
+
+        #         "answer": "I couldn't find the answer on this webpage."
+
+        #     }
 
         print("=" * 50)
         print("Retrieved Chunks")
@@ -131,10 +133,9 @@ def retrieve(data: RetrieveRequest):
 
         context = ""
 
-        for i, (doc, score) in enumerate(results):
+        for i, doc in enumerate(docs):
 
             print(f"\nChunk {i+1}")
-            print(f"Score : {score:.4f}")
 
             print(doc.page_content[:200])
 
@@ -152,19 +153,19 @@ def retrieve(data: RetrieveRequest):
 
             "answer": answer,
 
-            "sources": [
+        "sources": [
 
-                {
+            {
 
-                    "chunk": doc.metadata["chunk_id"],
+                "chunk": doc.metadata["chunk_id"],
 
-                    "title": doc.metadata["title"]
+                "title": doc.metadata["title"]
 
-                }
+            }
 
-                for doc, score in results
+            for doc in docs
 
-            ]
+        ]
 
         }
 
