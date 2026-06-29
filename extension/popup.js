@@ -249,10 +249,6 @@ Total Chunks: ${result.chunks}`;
 
             const result = await backendResponse.json();
 
-//             response.textContent =
-// `✅ ${result.message}
-
-// Retrieved Chunks: ${result.retrieved_chunks}`;
                 response.textContent = result.answer;
 
         }

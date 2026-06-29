@@ -1,85 +1,13 @@
-# from fastapi import APIRouter
-# from rag.chunker import chunk_text
-# from rag.vector_store import create_vector_store
-# from rag.retriever import retrieve_context
-
-# router = APIRouter()
-
-
-# @router.get("/health")
-# def health():
-#     return {
-#         "status": "healthy"
-#     }
-
-
-# @router.post("/index-page")
-# def index_page(data: dict):
-
-#     page_text = data["page_text"]
-
-#     chunks = chunk_text(page_text)
-
-#     print(f"Created {len(chunks)} chunks")
-
-#     vector_store = create_vector_store(chunks)
-
-#     print("Vector Store Created Successfully!")
-
-#     return {
-
-#         "message": "Page indexed successfully.",
-
-#         "chunks": len(chunks)
-
-#     }
-
-# @router.post("/retrieve")
-# def retrieve(data: dict):
-
-#     # page_text = data["page_text"]
-
-#     question = data["question"]
-
-#     # chunks = chunk_text(page_text)
-
-#     # vector_store = create_vector_store(chunks)
-
-#     docs = retrieve_context(
-
-#         # vector_store,
-
-#         question
-
-#     )
-
-#     print("="*50)
-
-#     print("Retrieved Chunks")
-
-#     print("="*50)
-
-#     for i, doc in enumerate(docs):
-
-#         print()
-
-#         print(f"Chunk {i+1}")
-
-#         print(doc.page_content[:200])
-
-#     return{
-
-#         "answer":"Retrieval Successful!"
-
-#     }
-
-
 from fastapi import APIRouter
 
 from rag.chunker import chunk_text
 from rag.vector_store import create_vector_store
 from rag.retriever import retrieve_context
 from services.openai_service import generate_answer
+from models.request import IndexPageRequest
+from models.request import RetrieveRequest
+
+from config import SIMILARITY_THRESHOLD
 
 router = APIRouter()
 
@@ -92,56 +20,160 @@ def health():
 
 
 @router.post("/index-page")
-def index_page(data: dict):
+def index_page(data: IndexPageRequest):
 
-    page_text = data["page_text"]
+    try:
 
-    chunks = chunk_text(page_text)
+        page_text = data.page_text.strip()
 
-    print("=" * 50)
-    print("Page Indexing Started")
-    print("=" * 50)
+        if not page_text:
 
-    print(f"Chunks Created : {len(chunks)}")
+            return {
 
-    create_vector_store(chunks)
+                "message": "This page contains no readable content.",
 
-    print("FAISS Index Created Successfully!")
+                "chunks": 0
 
-    return {
-        "message": "Page indexed successfully.",
-        "chunks": len(chunks)
-    }
+            }
 
+        chunks = chunk_text(page_text)
+
+        if not chunks:
+
+            return {
+
+                "message": "Failed to create chunks.",
+
+                "chunks": 0
+
+            }
+
+        print("=" * 50)
+        print("Page Indexing Started")
+        print("=" * 50)
+
+        print(f"Page Title : {data.page_title}")
+        print(f"Chunks Created : {len(chunks)}")
+
+        create_vector_store(
+
+            chunks,
+
+            title=data.page_title,
+
+            url=data.page_url
+
+        )
+
+        print("FAISS Index Created Successfully!")
+
+        return {
+
+            "message": "Page indexed successfully.",
+
+            "chunks": len(chunks)
+
+        }
+
+    except Exception as e:
+
+        print(f"\nIndexing Error : {e}")
+
+        return {
+
+            "message": "Failed to index the webpage.",
+
+            "chunks": 0
+
+        }
 
 @router.post("/retrieve")
-def retrieve(data: dict):
+def retrieve(data: RetrieveRequest):
 
-    question = data["question"]
+    try:
 
-    docs = retrieve_context(question)
+        question = data.question.strip()
 
-    print("=" * 50)
-    print("Retrieved Chunks")
-    print("=" * 50)
+        if not question:
 
-    context = ""
+            return {
 
-    for i, doc in enumerate(docs):
+                "answer": "Please enter a valid question."
 
-        print(f"\nChunk {i+1}\n")
+            }
 
-        print(doc.page_content[:200])
+        results = retrieve_context(question)
 
-        context += doc.page_content + "\n\n"
+        if not results:
 
-    answer = generate_answer(
-        question=question,
-        context=context
-    )
+            return {
 
-    return {
+                "answer": "I couldn't find the answer on this webpage."
 
-        "answer": answer
+            }
 
-    }
+        best_score = results[0][1]
+
+        print(f"\nBest Score : {best_score:.4f}")
+
+
+        if best_score > SIMILARITY_THRESHOLD:
+
+            return {
+
+                "answer": "I couldn't find the answer on this webpage."
+
+            }
+
+        print("=" * 50)
+        print("Retrieved Chunks")
+        print("=" * 50)
+
+        context = ""
+
+        for i, (doc, score) in enumerate(results):
+
+            print(f"\nChunk {i+1}")
+            print(f"Score : {score:.4f}")
+
+            print(doc.page_content[:200])
+
+            context += doc.page_content + "\n\n"
+
+        answer = generate_answer(
+
+            question=question,
+
+            context=context
+
+        )
+
+        return {
+
+            "answer": answer,
+
+            "sources": [
+
+                {
+
+                    "chunk": doc.metadata["chunk_id"],
+
+                    "title": doc.metadata["title"]
+
+                }
+
+                for doc, score in results
+
+            ]
+
+        }
+
+    except Exception as e:
+
+        print(f"\nRetrieve Error : {e}")
+
+        return {
+
+            "answer": "Something went wrong while processing your request."
+
+        }

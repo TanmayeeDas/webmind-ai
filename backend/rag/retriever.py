@@ -1,11 +1,25 @@
-# def retrieve_context(vector_store, question):
+
+
+
+# from rag.vector_store import get_vector_store
+
+
+# def retrieve_context(question: str):
+
+#     """
+#     Retrieve the most relevant chunks
+#     from the current webpage.
+#     """
+
+#     vector_store = get_vector_store()
+
+#     if vector_store is None:
+#         raise ValueError("No page has been indexed yet.")
 
 #     retriever = vector_store.as_retriever(
 
 #         search_kwargs={
-
-#             "k":4
-
+#             "k": 4
 #         }
 
 #     )
@@ -14,30 +28,23 @@
 
 #     return docs
 
-
 from rag.vector_store import get_vector_store
+from config import TOP_K
 
 
 def retrieve_context(question: str):
-
-    """
-    Retrieve the most relevant chunks
-    from the current webpage.
-    """
 
     vector_store = get_vector_store()
 
     if vector_store is None:
         raise ValueError("No page has been indexed yet.")
 
-    retriever = vector_store.as_retriever(
+    results = vector_store.similarity_search_with_score(
 
-        search_kwargs={
-            "k": 4
-        }
+        query=question,
+
+        k=TOP_K
 
     )
 
-    docs = retriever.invoke(question)
-
-    return docs
+    return results

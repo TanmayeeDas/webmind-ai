@@ -1,13 +1,18 @@
+
+
+
+
 # from langchain_community.vectorstores import FAISS
 # from rag.embeddings import embedding_model
 
-# # Global variable
+# # Global variable to hold the current page's FAISS index
 # vector_store = None
 
 
 # def create_vector_store(chunks):
 #     """
-#     Creates a FAISS vector store and saves it globally.
+#     Creates a FAISS vector store from webpage chunks
+#     and stores it in memory.
 #     """
 
 #     global vector_store
@@ -27,35 +32,52 @@
 
 #     return vector_store
 
-
-
-
 from langchain_community.vectorstores import FAISS
+from langchain_core.documents import Document
+
 from rag.embeddings import embedding_model
 
 # Global variable to hold the current page's FAISS index
 vector_store = None
 
 
-def create_vector_store(chunks):
-    """
-    Creates a FAISS vector store from webpage chunks
-    and stores it in memory.
-    """
+def create_vector_store(chunks, title="", url=""):
 
     global vector_store
 
-    vector_store = FAISS.from_texts(
-        texts=chunks,
+    documents = []
+
+    for i, chunk in enumerate(chunks):
+
+        documents.append(
+
+            Document(
+
+                page_content=chunk,
+
+                metadata={
+
+                    "chunk_id": i + 1,
+                    "title": title,
+                    "url": url
+
+                }
+
+            )
+
+        )
+
+    vector_store = FAISS.from_documents(
+
+        documents=documents,
+
         embedding=embedding_model
+
     )
 
     return vector_store
 
 
 def get_vector_store():
-    """
-    Returns the current FAISS vector store.
-    """
 
     return vector_store
