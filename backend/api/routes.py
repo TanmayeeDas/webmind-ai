@@ -7,6 +7,7 @@ from rag.hybrid_retriever import hybrid_retrieve
 from services.openai_service import generate_answer
 from models.request import IndexPageRequest
 from models.request import RetrieveRequest
+from rag.vector_store import get_current_url
 
 from config import SIMILARITY_THRESHOLD
 
@@ -32,6 +33,21 @@ def index_page(data: IndexPageRequest):
             return {
 
                 "message": "This page contains no readable content.",
+
+                "chunks": 0
+
+            }
+        cached_url = get_current_url()
+
+        if cached_url == data.page_url:
+
+            print("=" * 50)
+            print("Using Cached FAISS Index")
+            print("=" * 50)
+
+            return {
+
+                "message": "Using cached page.",
 
                 "chunks": 0
 

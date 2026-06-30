@@ -8,31 +8,58 @@
     <link rel="stylesheet" href="popup.css">
 </head>
 
+
 <body>
 
-    <h1>WebMind AI</h1>
+    <div class="container">
 
-    <p>Ask anything about the current webpage.</p>
+        <h1>🧠 WebMind AI</h1>
 
-    <textarea
-        id="question"
-        placeholder="Example: Summarize this page..."
-    ></textarea>
+        <p class="subtitle">
+            Ask anything about the current webpage
+        </p>
 
-    <button id="askButton">
-        Ask
-    </button>
+        <textarea
+            id="question"
+            placeholder="Ask a question..."
+        ></textarea>
 
-    <hr>
+        <div class="page-card">
 
-    <h3>Response</h3>
+            <h3>🌐 Current Page</h3>
 
-    <div id="response">
-        Waiting for your question...
+            <div id="pageTitle">
+
+                Detecting page...
+
+            </div>
+
+        </div>
+
+        <button id="askButton">
+            Ask
+        </button>
+
+        <div class="answer-card">
+
+            <h3>🤖 Answer</h3>
+
+            <div id="response">
+
+                Waiting for your question...
+
+            </div>
+
+            <button id="copyButton">
+
+                📋 Copy Answer
+
+            </button> 
+
+        </div>
+
     </div>
 
     <script src="popup.js"></script>
 
 </body>
-
-</html>

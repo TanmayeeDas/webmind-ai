@@ -92,12 +92,14 @@ from rag.embeddings import embedding_model
 # Global objects
 vector_store = None
 documents = []
+current_url = None
 
 
 def create_vector_store(chunks, title="", url=""):
 
     global vector_store
     global documents
+    global current_url
 
     documents = []
 
@@ -129,6 +131,7 @@ def create_vector_store(chunks, title="", url=""):
 
     )
 
+    current_url = url
     return vector_store
 
 
@@ -140,3 +143,7 @@ def get_vector_store():
 def get_documents():
 
     return documents
+
+def get_current_url():
+
+    return current_url
